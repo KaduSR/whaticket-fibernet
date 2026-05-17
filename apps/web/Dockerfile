@@ -21,7 +21,7 @@ COPY . .
 RUN npx prisma generate --schema=apps/web/prisma/schema.prisma
 
 # Build the Next.js app
-RUN npm run build --workspace=apps/web
+RUN npm run build --workspace=web
 
 FROM base AS runner
 WORKDIR /app
