@@ -6,7 +6,9 @@
       "Bash(git push *)",
       "Bash(git pull *)",
       "WebFetch(domain:www.hostinger.com)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(npm run *)",
+      "WebSearch"
     ]
   }
 }

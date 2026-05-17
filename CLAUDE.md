@@ -1,6 +1,8 @@
 # CLAUDE.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Always replies in Brazilian Portuguese.
+Always analyse and double check the code before making any changes, don't use full stops in your code and always use double quotes.
 
 ## Commands
 - Build: `npm run build`
