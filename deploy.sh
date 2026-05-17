@@ -7,7 +7,7 @@ set -e
 
 # --- CONFIGURAÇÃO ---
 # Substitua pela URL do SEU repositório
-REPO_URL="https://github.com/SEU_USUARIO/whaticket-fibernet.git"
+REPO_URL="https://github.com/KaduSR/whaticket-fibernet.git"
 PROJECT_DIR="whaticket-fibernet"
 # -------------------
 
