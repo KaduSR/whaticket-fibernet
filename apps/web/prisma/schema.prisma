@@ -82,6 +82,7 @@ model AgentSession {
   updatedAt     DateTime      @updatedAt
   conversations Conversation[]
   aiRules       AIRule[]
+  flows         Flow[]
 }
 
 // ─── AI ACTIVATION RULES ────────────────────────────────────────────
