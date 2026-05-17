@@ -1,0 +1,59 @@
+{
+  "version": 2,
+  "project": {
+    "name": "whaticket-fibernet",
+    "slug": "whaticket-fibernet",
+    "repoPath": "V:\\Whaticket-fibernet",
+    "createdAt": "2026-05-17T00:00:00Z"
+  },
+  "channels": {
+    "enabled": ["evolution_api"],
+    "evolution_api": {
+      "enabled": true,
+      "image": "atendai/evolution-api:latest",
+      "instanceName": "default",
+      "port": 8080
+    }
+  },
+  "useCase": "all",
+  "language": "pt-BR",
+  "volume": "low",
+  "handoff": {
+    "trigger": "explicit",
+    "destination": "same_channel"
+  },
+  "llm": {
+    "providers": ["groq"],
+    "primary": "groq",
+    "defaultModel": "llama-3.1-70b-versatile",
+    "fallbackPolicy": "provider",
+    "memory": "window_20"
+  },
+  "tools": {
+    "calendar": true,
+    "webSearch": true,
+    "rag": true,
+    "webhook": true
+  },
+  "schedule": {
+    "mode": "24_7",
+    "timezone": "America/Sao_Paulo"
+  },
+  "cache": {
+    "enabled": true,
+    "provider": "redis_docker",
+    "debounce": {
+      "enabled": true,
+      "windowMs": 5000,
+      "maxBufferedMessages": 20,
+      "keyPrefix": "debounce"
+    }
+  },
+  "infra": {
+    "db": "postgres_docker",
+    "auth": "magic_link",
+    "domain": "custom",
+    "customDomain": null
+  },
+  "checkpoint": "wizard_done"
+}

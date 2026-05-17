@@ -1,0 +1,12 @@
+{
+  "name": "whaticket-fibernet-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace=apps/web",
+    "build": "npm run build --workspace=apps/web",
+    "postinstall": "npm install --workspaces"
+  }
+}

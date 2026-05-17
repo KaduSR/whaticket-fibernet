@@ -1,0 +1,175 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── CONTATO cross-channel ──────────────────────────────────────────
+model Contact {
+  id            String   @id @default(cuid())
+  displayName   String?
+  notes         String?
+  tags          String[] @default([])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  identities    ContactIdentity[]
+  conversations Conversation[]
+
+  @@index([tags], type: Gin)
+}
+
+model ContactIdentity {
+  id         String   @id @default(cuid())
+  contactId  String
+  contact    Contact  @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  channel    String   // "waha" | "evolution" | "whatsapp_cloud" | "instagram" | "ixc"
+  externalId String   // phone@c.us, phone, ig_user_id, ixc_id
+  @@unique([channel, externalId])
+  @@index([contactId])
+}
+
+// ─── CONVERSAS + MSGS ───────────────────────────────────────────────
+model Conversation {
+  id             String       @id @default(cuid())
+  contactId      String
+  contact        Contact      @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  channel        String
+  agentSessionId String?
+  agentSession   AgentSession? @relation(fields: [agentSessionId], references: [id])
+  aiEnabled      Boolean      @default(true)
+  lastMessageAt  DateTime?
+  createdAt      DateTime     @default(now())
+  messages       Message[]
+
+  @@index([contactId, channel])
+  @@index([lastMessageAt])
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  direction      String       // "inbound" | "outbound"
+  role           String       // "user" | "assistant" | "system" | "tool"
+  text           String
+  mediaUrl       String?
+  providerMsgId  String?      @unique
+  tokensIn       Int?
+  tokensOut      Int?
+  costUsd        Decimal?     @db.Decimal(10, 6)
+  modelUsed      String?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+// ─── AGENT SESSION (persona/config reutilizável) ────────────────────
+model AgentSession {
+  id            String        @id @default(cuid())
+  name          String        @unique
+  systemPrompt   String
+  model         String        @default("claude-sonnet-4-6")
+  provider      String        @default("anthropic")
+  temperature   Float         @default(0.7)
+  maxTokens     Int           @default(1024)
+  memoryMode    String        @default("window_20")
+  tools         Json          @default("[]")
+  isDefault     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  conversations Conversation[]
+  aiRules       AIRule[]
+}
+
+// ─── AI ACTIVATION RULES ────────────────────────────────────────────
+model AIRule {
+  id              String       @id @default(cuid())
+  agentSessionId  String
+  agentSession    AgentSession @relation(fields: [agentSessionId], references: [id], onDelete: Cascade)
+  priority        Int          @default(100)
+  enabled         Boolean      @default(true)
+  mode            String       // "always_on" | "contact_whitelist" | "contact_blacklist" | "keyword_trigger" | "keyword_pause" | "schedule" | "manual_approval"
+  params          Json         // shape depende do mode
+  action          String       @default("respond")  // "respond" | "drop" | "handoff" | "static_reply"
+  staticReply     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([agentSessionId, priority])
+}
+
+// ─── CONFIGURAÇÕES E INTEGRAÇÕES ─────────────────────────────────────
+model IntegrationConfig {
+  id          String   @id @default(cuid())
+  key         String   @unique // "ixc_erp", "waha", etc.
+  value       Json     // { url: "...", token: "..." }
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── RAG (se tools.rag == true) ──────────────────────────────────────
+model RagDoc {
+  id            String      @id @default(cuid())
+  agentSessionId String
+  title         String
+  sourceType    String      // "pdf" | "url" | "text"
+  sourceRef     String
+  checksum      String      @unique
+  createdAt     DateTime    @default(now())
+  chunks        RagChunk[]
+}
+
+model RagChunk {
+  id        String   @id @default(cuid())
+  docId     String
+  doc       RagDoc   @relation(fields: [docId], references: [id], onDelete: Cascade)
+  ord       Int
+  text      String
+  embedding Unsupported("vector(768)")?
+  embeddingModel String @default("gemini-embedding-2")
+  modality String @default("text")
+
+  @@index([docId, ord])
+  @@index([embeddingModel])
+}
+
+// ─── FLOW BUILDER (Fluxos de Atendimento) ──────────────────────────
+model Flow {
+  id            String     @id @default(cuid())
+  name          String     @unique
+  description   String?
+  agentSessionId String
+  agentSession   AgentSession @relation(fields: [agentSessionId], references: [id])
+  steps         FlowStep[]
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+}
+
+model FlowStep {
+  id          String   @id @default(cuid())
+  flowId      String
+  flow        Flow     @relation(fields: [flowId], references: [id], onDelete: Cascade)
+  order       Int
+  type        String   // "prompt" | "tool_call" | "condition" | "handoff"
+  content     String   // The prompt or tool name
+  nextStepId  String?
+  errorStepId String?
+  params      Json     @default("{}") // e.g., { "ixc_endpoint": "cliente" }
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([flowId, order])
+}
+model UsageDaily {
+  id         String   @id @default(cuid())
+  date       DateTime @db.Date
+  contactId  String?
+  tokensIn   Int      @default(0)
+  tokensOut  Int      @default(0)
+  costUsd    Decimal  @default(0) @db.Decimal(10, 6)
+
+  @@unique([date, contactId])
+  @@index([date])
+}

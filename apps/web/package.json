@@ -1,0 +1,37 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "next": "16.0.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "lucide-react": "^0.454.0",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^2.5.4",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8.4.47",
+    "autoprefixer": "^10.4.20",
+    "axios": "^1.7.7",
+    "ioredis": "^5.4.1",
+    "@prisma/client": "^6.0.0",
+    "next-themes": "^0.4.3",
+    "framer-motion": "^11.11.17",
+    "react-query": "^3.39.3",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3",
+    "@types/tailwindcss": "^3.4.11",
+    "prisma": "^6.0.0"
+  }
+}
